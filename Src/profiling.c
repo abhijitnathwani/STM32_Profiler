@@ -3,7 +3,7 @@
  Title        : PROFILER
  Description  : Code time profiler with output to ITM Stimulus Port 0
                 Debug (printf) Viewer
-                Time accuracy 1µS
+                Time accuracy 1ÂµS
 
                 Examle output:
                 Profiling "Start" sequence:
@@ -20,7 +20,7 @@
  Revised      : 04/10/2018
  Version      : 3.0
  Target MCU   : STM32
- Compiler     : ARM Compiler v5.04 for µVision armcc
+ Compiler     : ARM Compiler v5.04 for ÂµVision armcc
  Editor Tabs  : 2
 ***********************************************************************/
 
@@ -33,27 +33,27 @@
 
 /* External variables ------------------------------------------------*/
 /* Private variables -------------------------------------------------*/
-static uint32_t   time_start; // profiler start time
-static const char *prof_name; // profiler name
-static uint32_t   time_event[MAX_EVENT_COUNT]; // events time
-static const char *event_name[MAX_EVENT_COUNT]; // events name
-static uint8_t    event_count = __PROF_STOPED; // events counter
+int32_t   time_start; // profiler start time
+char *prof_name; // profiler name
+uint32_t   time_event[MAX_EVENT_COUNT]; // events time
+char *event_name[MAX_EVENT_COUNT]; // events name
+uint8_t    event_count = __PROF_STOPED; // events counter
 
 /* Private function prototypes ---------------------------------------*/
 /* -------------------------------------------------------------------*/
 
-/**
- * redefinition fputc() for output printf(..) to ITM Stimulus Port 0
- */
-struct __FILE { int handle; /* Add whatever needed */ };
-FILE __stdout;
-FILE __stdin;
+///**
+// * redefinition fputc() for output printf(..) to ITM Stimulus Port 0
+// */
+////struct __FILE { int handle; /* Add whatever needed */ };
+//FILE __stdout;
+//FILE __stdin;
 
-int fputc(int ch, FILE *f)
-{
-  ITM_SendChar(ch);
-  return(ch);
-}
+//int fputc(int ch, FILE *f)
+//{
+//  ITM_SendChar(ch);
+//  return(ch);
+//}
 
 
 /**
@@ -67,6 +67,7 @@ void PROFILING_START(const char *profile_name)
   event_count = 0;
 
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  //DWT->LAR = 0xC5ACCE55;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // enable counter
   //DWT->CYCCNT  = time_start = 0;
   time_start = DWT->CYCCNT;
@@ -101,6 +102,9 @@ void PROFILING_STOP(void)
   int32_t time_prev;
   int32_t timestamp;
   int32_t delta_t;
+	int32_t ticks;
+	int32_t delta_ticks;
+	int32_t ticks_prev;
 
   tick_per_1us = SystemCoreClock / 1000000;
 
@@ -111,15 +115,19 @@ void PROFILING_STOP(void)
   }
 
   DEBUG_PRINTF("Profiling \"%s\" sequence: \r\n"
-               "--Event-----------------------|--timestamp--|----delta_t---\r\n", prof_name);
+               "--Event-----------------------|--timestamp--|----delta_t----|----ticks----|--delta_ticks--|\r\n", prof_name);
   time_prev = 0;
+	ticks_prev = 0;
 
   for (int i = 0; i < event_count; i++)
   {
     timestamp = (time_event[i] - time_start) / tick_per_1us;
+		ticks = time_event[i] - time_start;
     delta_t = timestamp - time_prev;
+		delta_ticks = ticks - ticks_prev;
     time_prev = timestamp;
-    DEBUG_PRINTF("%-30s:%9d µs | +%9d µs\r\n", event_name[i], timestamp, delta_t);
+		ticks_prev = ticks;
+    DEBUG_PRINTF("%-30s:%9d Âµs | +%9d Âµs | +%9d  | +%9d  |\r\n", event_name[i], timestamp, delta_t, ticks, delta_ticks);
   }
   DEBUG_PRINTF("\r\n");
   event_count = __PROF_STOPED;
