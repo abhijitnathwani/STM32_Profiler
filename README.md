@@ -93,7 +93,16 @@ DELAY 1 s                     :  1000797 µs | +   999999 µs
 
 ```
 ![Keil µVision Debug (printf) Viewer](Image/debug.png)
--------------   
+-------------
+##### Necessary changes using the ST-Link debugger on Keil.
+
+![Debug trace settings](Image/trace_settings.png)
+
+![Runtime Environment](Image/runtime_environment.png)
+
+Comment out the fputc redirection in `profiling.c` as Keil adds `retarget_io.c` with the necessary redirections over ITM.
+
+-------------
 For more information, how to use the Keil µVision Debug (printf) Viewer see  http://www.keil.com/support/man/docs/ulink2/ulink2_trace_itm_viewer.htm   
 You can also use ST-LINK - Printf via SWO viewer feature or other debugging software with SWO Viewer support.
 
